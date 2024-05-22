@@ -55,9 +55,9 @@ class SpectralConv3d_Uno(nn.Module):
 
     def forward(self, x, dim1 = None,dim2=None,dim3=None):
         """
-        dim1, dim2, dim3 are the output grid size along (x, y, t)
+        dim1,dim2,dim3 are the output grid size along (x,y,t)
         input shape = (batch, in_codim, input_dim1, input_dim2, input_dim3)
-        output shape = (batch, out_codim, dim1,dim2, dim3)
+        output shape = (batch, out_codim, dim1,dim2,dim3)
         """
         if dim1 is not None:
             self.dim1 = dim1
@@ -89,7 +89,7 @@ class pointwise_op_3D(nn.Module):
 
     def forward(self, x, dim1=None, dim2=None, dim3=None):
         """
-        dim1, dim2, dim3 are the output dimensions (x, y, t)
+        dim1,dim2,dim3 are the output dimensions (x,y,t)
         """
         if dim1 is None:
             dim1 = self.dim1
@@ -154,11 +154,14 @@ class UNO3D(nn.Module):
         self.fc0 = nn.Linear(self.width//2, self.width) # input channel is 3: (a(x, y), x, y)
         
         self.conv0 = OperatorBlock_3D(self.width, 2*factor*self.width, 48, 48, 48, 24, 24, 24)
-        self.conv1 = OperatorBlock_3D(2*factor*self.width, 4*factor*self.width, 32, 32, 32, 16, 16, 16)    
-        self.conv2 = OperatorBlock_3D(4*factor*self.width, 8*factor*self.width, 16, 16, 16, 8, 8, 8)  
-        self.conv3 = OperatorBlock_3D(8*factor*self.width, 4*factor*self.width, 32, 32, 32, 8, 8, 8)
-        self.conv4 = OperatorBlock_3D(8*factor*self.width, 2*factor*self.width, 48, 48, 48, 16, 16, 16)
-        self.conv5 = OperatorBlock_3D(4*factor*self.width, 2*self.width, 64, 64, 64, 24, 24, 24) 
+        self.conv1 = OperatorBlock_3D(2*factor*self.width, 4*factor*self.width, 32, 32, 32, 16, 16, 16)
+        self.conv2 = OperatorBlock_3D(4*factor*self.width, 8*factor*self.width, 16, 16, 16, 8, 8, 8)
+        #self.conv3 = OperatorBlock_3D(8*factor*self.width, 16*factor*self.width, 8, 8, 8, 4, 4, 4)
+        #self.conv4 = OperatorBlock_3D(16*factor*self.width, 16*factor*self.width, 8, 8, 8, 4, 4, 4)
+        #self.conv5 = OperatorBlock_3D(16*factor*self.width, 8*factor*self.width, 16, 16, 16, 4, 4, 4) 
+        self.conv6 = OperatorBlock_3D(8*factor*self.width, 4*factor*self.width, 32, 32, 32, 8, 8, 8)
+        self.conv7 = OperatorBlock_3D(8*factor*self.width, 2*factor*self.width, 48, 48, 48, 16, 16, 16)
+        self.conv8 = OperatorBlock_3D(4*factor*self.width, 2*self.width, 64, 64, 64, 24, 24, 24) 
 
         self.fc1 = nn.Linear(3*self.width, 4*self.width)
         self.fc2 = nn.Linear(4*self.width, 6)
@@ -172,28 +175,39 @@ class UNO3D(nn.Module):
         x_fc0 = F.gelu(x_fc0)
         
         x_fc0 = x_fc0.permute(0, 4, 1, 2, 3)
+        
+        D1, D2, D3 = x_fc0.shape[-3], x_fc0.shape[-2], x_fc0.shape[-1]
 
         x_c0 = self.conv0(x_fc0)
         x_c1 = self.conv1(x_c0)
-        x_c2 = self.conv2(x_c1)       
-        x_c3 = self.conv3(x_c2)
-        x_c3 = torch.cat([x_c3, x_c1], dim=1)
-        x_c4 = self.conv4(x_c3)
-        x_c4 = torch.cat([x_c4, x_c0], dim=1)
-        x_c5 = self.conv5(x_c4)
-        x_c5 = torch.cat([x_c5, x_fc0], dim=1)
+        x_c2 = self.conv2(x_c1)
+    
+        #x_c3 = self.conv3(x_c2)
+        #x_c4 = self.conv4(x_c3)
+        #x_c5 = self.conv5(x_c4)
+        
+        x_c6 = self.conv6(x_c2)
+        x_c6 = torch.cat([x_c6, x_c1], dim=1)
+        
+        x_c7 = self.conv7(x_c6)
+        x_c7 = torch.cat([x_c7, x_c0], dim=1)
+        
+        x_c8 = self.conv8(x_c7)
+
+        x_c8 = torch.cat([x_c8, x_fc0], dim=1)
         
         if self.padding != 0:
             if self.pad_both:
-                x_c5 = x_c5[...,self.padding//2:-self.padding//2]
+                x_c8 = x_c8[...,self.padding//2:-self.padding//2]
             else:
-                x_c5 = x_c5[...,:-self.padding]
+                x_c8 = x_c8[...,:-self.padding]
 
-        x_c5 = x_c5.permute(0, 2, 3, 4, 1)
+        x_c8 = x_c8.permute(0, 2, 3, 4, 1)
 
-        x_fc1 = self.fc1(x_c5)
+        x_fc1 = self.fc1(x_c8)
         x_fc1 = F.gelu(x_fc1)
         x_out = self.fc2(x_fc1)
+        
         
         return x_out
     

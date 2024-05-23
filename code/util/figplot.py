@@ -214,3 +214,39 @@ def plot_t_3D(srcxyz, vs, vp_vs_ratio, true, pred):
         for data, name in zip(datagroup, namegroup):
             plot_3D(fig, xx, yy, zz, data, 'RdBu_r', (4, 9, iplot), name, -vmax, vmax, 'both')
             iplot += 1
+
+def plot_fwi_result(srcxyz, vs, vp, vs_inv, vp_inv, index, ncover=None, shade=False):
+    vs = vs / 1000
+    vp = vp / 1000
+    vs_inv = vs_inv / 1000
+    vp_inv = vp_inv / 1000
+    
+    vpmax = np.percentile(vp, 99)
+    vpmin = np.percentile(vp, 1)
+    vsmax = np.percentile(vs, 99)
+    vsmin = np.percentile(vs, 1)
+    
+    fig = plt.figure(figsize=(12, 8), facecolor='white')
+
+    ax0 = fig.add_subplot(231, projection='3d', facecolor='white')
+    ax0.scatter(srcxyz[:, 0]/1000, srcxyz[:, 1]/1000, srcxyz[:, 2]/1000, marker='*', color='r', s=20)
+    ax0.scatter(xx[:, :, 0].flatten()/1000, yy[:, :, 0].flatten()/1000, zz[:, :, 0].flatten()/1000, 
+                marker='^', color='b', s=1, alpha=0.3)
+        
+    ax0.set_xlabel("X (km)", fontsize=12)
+    ax0.set_ylabel("Y (km)", fontsize=12)
+    ax0.set_zlabel("Z (km)", fontsize=12)
+    ax0.tick_params(labelsize=12)
+    ax0.set_title("Source", fontsize=15)
+    ax0.set_xlim(0, 5)
+    ax0.set_ylim(0, 5)
+    ax0.set_zlim(0, 5)
+    ax0.set_box_aspect([1, 1, 1])
+    ax0.invert_zaxis()
+    ax0.view_init(azim=225)
+    ax0.text2D(0, 0.9, "Z (km)", transform=ax0.transAxes, ha='left', va='top', fontsize=12)
+
+    scatter_3D(fig, xx, yy, zz, vs, index, 'Spectral', (2, 3, 2), "True $\mathregular{V_S}$ (km/s)", vsmin, vsmax, 4, True)
+    scatter_3D(fig, xx, yy, zz, vp, index, 'Spectral', (2, 3, 3), "True $\mathregular{V_P}$ (km/s)", vpmin, vpmax, 3, True)
+    scatter_3D(fig, xx, yy, zz, vs_inv, index, 'Spectral', (2, 3, 5), "Inverted $\mathregular{V_S}$ (km/s)", vsmin, vsmax, 4, True, ncover, shade)
+    scatter_3D(fig, xx, yy, zz, vp_inv, index, 'Spectral', (2, 3, 6), "Inverted $\mathregular{V_P}$ (km/s)", vpmin, vpmax, 3, True, ncover, shade)

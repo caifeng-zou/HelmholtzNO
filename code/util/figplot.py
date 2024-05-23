@@ -215,6 +215,45 @@ def plot_t_3D(srcxyz, vs, vp_vs_ratio, true, pred):
             plot_3D(fig, xx, yy, zz, data, 'RdBu_r', (4, 9, iplot), name, -vmax, vmax, 'both')
             iplot += 1
 
+def scatter_3D_fwi(fig, X, Y, Z, data, index, cmap, iplot, title, vmin, vmax, num_ticks=3, if_clb=False, ncover=None, shade=False):
+    kw = {'cmap': cmap,
+          's': 1,
+          'vmin': vmin,
+          'vmax': vmax}
+    
+    ax = fig.add_subplot(iplot[0], iplot[1], iplot[2], projection='3d', facecolor='white')
+        
+    ax.set_title(title, fontsize=15)
+
+    C = ax.scatter(X[index].flatten(), Y[index].flatten(), Z[index].flatten(), c=data[index].flatten(), **kw)
+
+    if shade:
+        data[ncover == 0] = 1e10
+        C1 = ax.scatter(X[index].flatten(), Y[index].flatten(), Z[index].flatten(), c=data[index].flatten(), **kw)
+        C1.cmap.set_over('0.4', alpha=0.5)
+        
+    xmin, xmax = X.min(), X.max()
+    ymin, ymax = Y.min(), Y.max()
+    zmin, zmax = Z.min(), Z.max()
+    ax.set(xlim=[xmin, xmax], ylim=[ymin, ymax], zlim=[zmin, zmax])
+    
+    # Plot edges
+    edges_kw = dict(color='0.4', linewidth=1, zorder=1e3, linestyle='--')
+    ax.plot([(xmin+xmax)/2, (xmin+xmax)/2], [(ymin+ymax)/2, (ymin+ymax)/2], [zmin, zmax], **edges_kw)
+    ax.plot([xmin, xmax], [(ymin+ymax)/2, (ymin+ymax)/2], [(zmin+zmax)/2, (zmin+zmax)/2], **edges_kw)
+    ax.plot([(xmin+xmax)/2, (xmin+xmax)/2], [ymin, ymax], [(zmin+zmax)/2, (zmin+zmax)/2], **edges_kw)
+    
+    ax.axis('off')
+    ax.set_aspect('equal')
+    ax.invert_zaxis()
+    if if_clb:
+        clb = plt.colorbar(C, ax=ax, fraction=0.025, pad=0.001)
+        clb.ax.tick_params(labelsize=15)
+        clb.locator = plt.MaxNLocator(num_ticks)
+        clb.update_ticks()
+    
+    ax.view_init(azim=225)
+
 def plot_fwi_result(srcxyz, vs, vp, vs_inv, vp_inv, index, ncover=None, shade=False):
     vs = vs / 1000
     vp = vp / 1000
@@ -246,7 +285,7 @@ def plot_fwi_result(srcxyz, vs, vp, vs_inv, vp_inv, index, ncover=None, shade=Fa
     ax0.view_init(azim=225)
     ax0.text2D(0, 0.9, "Z (km)", transform=ax0.transAxes, ha='left', va='top', fontsize=12)
 
-    scatter_3D(fig, xx, yy, zz, vs, index, 'Spectral', (2, 3, 2), "True $\mathregular{V_S}$ (km/s)", vsmin, vsmax, 4, True)
-    scatter_3D(fig, xx, yy, zz, vp, index, 'Spectral', (2, 3, 3), "True $\mathregular{V_P}$ (km/s)", vpmin, vpmax, 3, True)
-    scatter_3D(fig, xx, yy, zz, vs_inv, index, 'Spectral', (2, 3, 5), "Inverted $\mathregular{V_S}$ (km/s)", vsmin, vsmax, 4, True, ncover, shade)
-    scatter_3D(fig, xx, yy, zz, vp_inv, index, 'Spectral', (2, 3, 6), "Inverted $\mathregular{V_P}$ (km/s)", vpmin, vpmax, 3, True, ncover, shade)
+    scatter_3D_fwi(fig, xx, yy, zz, vs, index, 'Spectral', (2, 3, 2), "True $\mathregular{V_S}$ (km/s)", vsmin, vsmax, 4, True)
+    scatter_3D_fwi(fig, xx, yy, zz, vp, index, 'Spectral', (2, 3, 3), "True $\mathregular{V_P}$ (km/s)", vpmin, vpmax, 3, True)
+    scatter_3D_fwi(fig, xx, yy, zz, vs_inv, index, 'Spectral', (2, 3, 5), "Inverted $\mathregular{V_S}$ (km/s)", vsmin, vsmax, 4, True, ncover, shade)
+    scatter_3D_fwi(fig, xx, yy, zz, vp_inv, index, 'Spectral', (2, 3, 6), "Inverted $\mathregular{V_P}$ (km/s)", vpmin, vpmax, 3, True, ncover, shade)

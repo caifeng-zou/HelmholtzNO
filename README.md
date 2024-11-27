@@ -1,7 +1,7 @@
 # HNO: Deep Neural Helmholtz Operators
 
 ## Introduction
-This repository provides code and (part of) data for the paper [Deep Neural Helmholtz Operators for 3D Elastic Wave Propagation and Inversion](https://arxiv.org/pdf/2311.09608).
+This repository provides code and (part of) data for the paper [Deep Neural Helmholtz Operators for 3D Elastic Wave Propagation and Inversion](https://academic.oup.com/gji/article/239/3/1469/7760394).
 
 ## File Description
 - **code**: 
@@ -11,7 +11,7 @@ This repository provides code and (part of) data for the paper [Deep Neural Helm
     - HNO_GNO_3D_fwi.ipynb: Workflow for full-waveform inversion
     - HNO_3D_test_overthrust.ipynb: Generalization test with overthrust models
 - **data**: Data for use with the code
-- **data_generation**: Code for generating training data with [Salvus](https://mondaic.com/docs/0.12.15/getting_started)
+- **data_generation**: Code for generating training data with [Salvus](https://mondaic.com/docs/2024.1.2/getting_started)
 - **model**: Normalizers for data processing. For 3D HNO models please see below.
 
 ## Dependencies
@@ -28,7 +28,7 @@ The 3D HNO models can be reproduced with code and data in this repository. Pre-t
 ## Contact
 We welcome any comments or questions regarding this work. If you find it helpful, please cite:
 ```
-Zou, C., Azizzadenesheli, K., Ross, Z. E., & Clayton, R. W. (2023). Deep Neural Helmholtz Operators for 3D elastic wave propagation and inversion. arXiv preprint arXiv:2311.09608.
+Zou, C., Azizzadenesheli, K., Ross, Z. E., & Clayton, R. W. (2024). Deep Neural Helmholtz Operators for 3-D Elastic Wave Propagation and Inversion. Geophysical Journal International, 239(3), 1469-1484.
 ```
 
 Caifeng Zou\

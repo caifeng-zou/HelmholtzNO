@@ -170,11 +170,11 @@ def convert_to_freq_out(output_in_time, n_after_padding=T):
                                                                                                                                  output_in_time.size(-1))
     output_in_freq = torch.fft.rfft(output_in_time * window, 
                                     dim=-2, norm='backward', n=n_after_padding)  # Negative frequencies omitted 
-    output_in_freq = output_in_freq[:, :, :, :, freq_to_keep, :]
-    output_in_freq = torch.view_as_real(output_in_freq.permute(0, 1, 2, 3, 5, 4))  # view_as_real operates on the last dimension (N, S, S, S, 2, NF, 2c)
-    output_in_freq = output_in_freq.permute(0, 5, 1, 2, 3, 4, 6)  # Move the frenquency domain forward (N, NF, S, S, S, 2, 2c)
-    output_in_freq = output_in_freq.flatten(-2, -1)  # Make complex u in the channel dimension
-    output_in_freq = output_in_freq.flatten(0, 1)  # Make the freq dimension at the batch location for parallelization
+    output_in_freq = output_in_freq[:, :, :, :, freq_to_keep, :]  # (N, S, S, S, NF, 3)
+    ooutput_in_freq = torch.view_as_real(output_in_freq)  # view_as_real operates on the last dimension (N, S, S, S, NF, 3, 2)
+    output_in_freq = output_in_freq.permute(0, 4, 1, 2, 3, 5, 6)  # Move the frenquency domain forward (N, NF, S, S, S, 3, 2)
+    output_in_freq = output_in_freq.flatten(-2, -1)  # Make complex u in the channel dimension (N, NF, S, S, S, 6)
+    output_in_freq = output_in_freq.flatten(0, 1)  # Make the freq dimension at the batch location for parallelization (N*NF, S, S, S, 6)
     return output_in_freq
 
 def get_train_data(offsets_train, nstrain, datapath, stf):
